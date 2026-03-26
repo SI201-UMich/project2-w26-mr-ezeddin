@@ -294,28 +294,43 @@ def output_csv(data, filename) -> None:
    # ==============================
 
 
-
 def avg_location_rating_by_room_type(data) -> dict:
-    """
-    Calculate the average location_rating for each room_type.
+   """
+   Calculate the average location_rating for each room_type.
 
-    Excludes rows where location_rating == 0.0 (meaning the rating
-    could not be found in the HTML).
 
-    Args:
-        data (list[tuple]): The list returned by create_listing_database()
+   Excludes rows where location_rating == 0.0 (meaning the rating
+   could not be found in the HTML).
 
-    Returns:
-        dict: {room_type: average_location_rating}
-    """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
-    pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
+
+   Args:
+       data (list[tuple]): The list returned by create_listing_database()
+
+
+   Returns:
+       dict: {room_type: average_location_rating}
+   """
+   # TODO: Implement checkout logic following the instructions
+   # ==============================
+   # YOUR CODE STARTS HERE
+   # ==============================
+   totals = {}
+   counts = {}
+   for row in data:
+       room_type = row[5]
+       rating = row[6]
+       if rating == 0.0:
+           continue
+       totals[room_type] = totals.get(room_type, 0.0) + rating
+       counts[room_type] = counts.get(room_type, 0) + 1
+
+
+   return {rt: totals[rt] / counts[rt] for rt in totals}
+   # ==============================
+   # YOUR CODE ENDS HERE
+   # ==============================
+
+
 
 
 def validate_policy_numbers(data) -> list[str]:
