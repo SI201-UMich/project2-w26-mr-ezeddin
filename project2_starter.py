@@ -200,47 +200,99 @@ def get_listing_details(listing_id) -> dict:
 
 
 def create_listing_database(html_path) -> list[tuple]:
-    """
-    Use prior functions to gather all necessary information and create a database of listings.
+   """
+   Use prior functions to gather all necessary information and create a database of listings.
 
-    Args:
-        html_path (str): The path to the HTML file containing the search results
 
-    Returns:
-        list[tuple]: A list of tuples. Each tuple contains:
-        (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating)
-    """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
-    pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
+   Args:
+       html_path (str): The path to the HTML file containing the search results
+
+
+   Returns:
+       list[tuple]: A list of tuples. Each tuple contains:
+       (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating)
+   """
+   # TODO: Implement checkout logic following the instructions
+   # ==============================
+   # YOUR CODE STARTS HERE
+   # ==============================
+   listings = load_listing_results(html_path)
+   detailed_data = []
+   for listing_title, listing_id in listings:
+       details = get_listing_details(listing_id)
+       inner = details[str(listing_id)]
+       detailed_data.append(
+           (
+               listing_title,
+               str(listing_id),
+               inner["policy_number"],
+               inner["host_type"],
+               inner["host_name"],
+               inner["room_type"],
+               inner["location_rating"],
+           )
+       )
+   return detailed_data
+   # ==============================
+   # YOUR CODE ENDS HERE
+   # ==============================
+
+
 
 
 def output_csv(data, filename) -> None:
-    """
-    Write data to a CSV file with the provided filename.
+   """
+   Write data to a CSV file with the provided filename.
 
-    Sort by Location Rating (descending).
 
-    Args:
-        data (list[tuple]): A list of tuples containing listing information
-        filename (str): The name of the CSV file to be created and saved to
+   Sort by Location Rating (descending).
 
-    Returns:
-        None
-    """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
-    pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
+
+   Args:
+       data (list[tuple]): A list of tuples containing listing information
+       filename (str): The name of the CSV file to be created and saved to
+
+
+   Returns:
+       None
+   """
+   # TODO: Implement checkout logic following the instructions
+   # ==============================
+   # YOUR CODE STARTS HERE
+   # ==============================
+   header = [
+       "Listing Title",
+       "Listing ID",
+       "Policy Number",
+       "Host Type",
+       "Host Name",
+       "Room Type",
+       "Location Rating",
+   ]
+
+
+   sorted_data = sorted(data, key=lambda t: t[6], reverse=True)
+
+
+   with open(filename, "w", newline="", encoding="utf-8") as f:
+       writer = csv.writer(f)
+       writer.writerow(header)
+       for (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating) in sorted_data:
+           writer.writerow(
+               [
+                   listing_title,
+                   listing_id,
+                   policy_number,
+                   host_type,
+                   host_name,
+                   room_type,
+                   str(location_rating),
+               ]
+           )
+   # ==============================
+   # YOUR CODE ENDS HERE
+   # ==============================
+
 
 
 def avg_location_rating_by_room_type(data) -> dict:
