@@ -1,7 +1,7 @@
 # SI 201 HW4 (Library Checkout System)
-# Your name:
+# Your name: Ezeddin kamel
 # Your student id:
-# Your email:
+# Your email: ezeddin@umich.edu
 # Who or what you worked with on this homework (including generative AI like ChatGPT):
 # If you worked with generative AI also add a statement for how you used it.
 # e.g.:
@@ -12,6 +12,7 @@
 # --- ARGUMENTS & EXPECTED RETURN VALUES PROVIDED --- #
 # --- SEE INSTRUCTIONS FOR FULL DETAILS ON METHOD IMPLEMENTATION --- #
 
+from typing import Any
 from bs4 import BeautifulSoup
 import re
 import os
@@ -37,14 +38,61 @@ def load_listing_results(html_path) -> list[tuple]:
     Returns:
         list[tuple]: A list of tuples containing (listing_title, listing_id)
     """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
-    pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
+    html_dir = os.path.abspath(os.path.dirname(html_path))
+
+    # Listing ids are stored in local files named listing_<id>.html.
+    listing_id_set = set[Any]()
+    for fname in os.listdir(html_dir):
+        m = re.match(r"listing_(\d+)\.html$", fname)
+        if m:
+            listing_id_set.add(m.group(1))
+
+    with open(html_path, "r", encoding="utf-8", errors="ignore") as f:
+        search_html = f.read()
+    soup = BeautifulSoup(search_html, "html.parser")
+
+    # Keep the listing order as it appears in search_results.html.
+    ordered_ids: list[str] = []
+    anchor_by_id: dict[str, object] = {}
+    seen: set[str] = set()
+
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        m = re.search(r"/rooms/(?:plus/)?(\d+)", href)
+        if not m:
+            continue
+        listing_id = m.group(1)
+        if listing_id not in listing_id_set or listing_id in seen:
+            continue
+        seen.add(listing_id)
+        ordered_ids.append(listing_id)
+        anchor_by_id[listing_id] = a
+
+    result: list[tuple] = []
+    for listing_id in ordered_ids:
+        title = ""
+        if listing_id in anchor_by_id:
+            anchor = anchor_by_id[listing_id]
+            # The listing title appears directly in the card near the link.
+            # We capture the first short "<something> in <location>" phrase.
+            nearby_nodes = [anchor.parent] + list(anchor.parents)[:2]
+            for anc in nearby_nodes:
+                for s in anc.stripped_strings:
+                    st = " ".join(s.split())
+                    if st.startswith("Over "):
+                        continue
+                    if re.match(r"^[A-Za-z ]+ in [A-Za-z].+$", st) and 6 <= len(st) <= 90:
+                        title = st
+                        break
+                if title:
+                    break
+        if not title:
+            title = f"Listing {listing_id}"
+        result.append((title, listing_id))
+
+    return result
+
+    
 
 
 def get_listing_details(listing_id) -> dict:
