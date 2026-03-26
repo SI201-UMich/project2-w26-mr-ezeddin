@@ -118,7 +118,82 @@ def get_listing_details(listing_id) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    html_dir = os.path.join(base_dir, "html_files")
+    listing_path = os.path.join(html_dir, f"listing_{listing_id}.html")
+
+    with open(listing_path, "r", encoding="utf-8", errors="ignore") as f:
+        text = f.read()
+
+    # policy_number
+    m = re.search(
+        r"Policy number[^:]{0,40}:\s*<span[^>]*>\s*([^<]+?)\s*</span>",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if m:
+        val = m.group(1).replace("&nbsp;", " ").strip()
+        val = re.sub(r"[\u200b\u200e\u200f\ufeff]", "", val)
+        val_clean = re.sub(r"[^A-Za-z0-9-]", "", val)
+        low = val_clean.lower()
+        if low == "pending":
+            policy_number = "Pending"
+        elif low == "exempt":
+            policy_number = "Exempt"
+        else:
+            policy_number = val_clean
+    elif re.search(r"\bPending\b", text, flags=re.IGNORECASE):
+        policy_number = "Pending"
+    elif re.search(r"\bExempt\b", text, flags=re.IGNORECASE):
+        policy_number = "Exempt"
+    else:
+        policy_number = "Pending"
+
+    # host_type
+    if re.search(r"\bSuperhost\b", text, flags=re.IGNORECASE):
+        host_type = "Superhost"
+    else:
+        host_type = "regular"
+
+    # host_name
+    m_host = re.search(r"Hosted by\s+([^<\n\r]+)", text, flags=re.IGNORECASE)
+    host_name = m_host.group(1).strip() if m_host else ""
+
+    # room_type
+    m_room = re.search(r'property="og:description"\s+content="([^"]*)"', text)
+    og_desc = m_room.group(1) if m_room else ""
+    og_desc = og_desc.replace("&amp;", "&")
+    prefix = og_desc[:140].lower()
+    if "entire" in prefix:
+        room_type = "Entire Room"
+    elif "shared" in prefix:
+        room_type = "Shared Room"
+    elif "private" in prefix:
+        room_type = "Private Room"
+    else:
+        room_type = "Entire Room"
+
+    # location_rating
+    location_rating = 0.0
+    for m_rating in re.finditer(r'aria-label="([0-9]+\.[0-9]+) out of 5\.0"', text):
+        val = m_rating.group(1)
+        window = text[max(0, m_rating.start() - 300) : m_rating.start()].lower()
+        if "location" in window:
+            try:
+                location_rating = float(val)
+                break
+            except ValueError:
+                pass
+
+    return {
+        str(listing_id): {
+            "policy_number": policy_number,
+            "host_type": host_type,
+            "host_name": host_name,
+            "room_type": room_type,
+            "location_rating": location_rating,
+        }
+    }
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
