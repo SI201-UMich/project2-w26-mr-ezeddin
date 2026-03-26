@@ -334,24 +334,39 @@ def avg_location_rating_by_room_type(data) -> dict:
 
 
 def validate_policy_numbers(data) -> list[str]:
-    """
-    Validate policy_number format for each listing in data.
-    Ignore "Pending" and "Exempt" listings.
+   """
+   Validate policy_number format for each listing in data.
+   Ignore "Pending" and "Exempt" listings.
 
-    Args:
-        data (list[tuple]): A list of tuples returned by create_listing_database()
 
-    Returns:
-        list[str]: A list of listing_id values whose policy numbers do NOT match the valid format
-    """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
-    pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
+   Args:
+       data (list[tuple]): A list of tuples returned by create_listing_database()
+
+
+   Returns:
+       list[str]: A list of listing_id values whose policy numbers do NOT match the valid format
+   """
+   # TODO: Implement checkout logic following the instructions
+   # ==============================
+   # YOUR CODE STARTS HERE
+   # ==============================
+   invalid = []
+   pat1 = re.compile(r"^20\d{2}-00\d{4}STR$")
+   pat2 = re.compile(r"^STR-\d{7}$")
+
+
+   for row in data:
+       listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating = row
+       if policy_number in ("Pending", "Exempt"):
+           continue
+       if not (pat1.match(policy_number) or pat2.match(policy_number)):
+           invalid.append(str(listing_id))
+
+
+   return invalid
+   # ==============================
+   # YOUR CODE ENDS HERE
+   # ==============================
 
 
 # EXTRA CREDIT
