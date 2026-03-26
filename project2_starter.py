@@ -371,22 +371,39 @@ def validate_policy_numbers(data) -> list[str]:
 
 # EXTRA CREDIT
 def google_scholar_searcher(query):
-    """
-    EXTRA CREDIT
+   """
+   EXTRA CREDIT
 
-    Args:
-        query (str): The search query to be used on Google Scholar
-    Returns:
-        List of titles on the first page (list)
-    """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
-    pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
+
+   Args:
+       query (str): The search query to be used on Google Scholar
+   Returns:
+       List of titles on the first page (list)
+   """
+   # TODO: Implement checkout logic following the instructions
+   # ==============================
+   # YOUR CODE STARTS HERE
+   # ==============================
+   # Extra credit: do a live request. If blocked, return [].
+   try:
+       resp = requests.get(
+           "https://scholar.google.com/scholar",
+           params={"q": query},
+           timeout=10,
+           headers={"User-Agent": "Mozilla/5.0"},
+       )
+       soup = BeautifulSoup(resp.text, "html.parser")
+       titles = []
+       for h3 in soup.find_all("h3"):
+           txt = " ".join(h3.get_text(" ", strip=True).split())
+           if txt:
+               titles.append(txt)
+       return titles
+   except Exception:
+       return []
+   # ==============================
+   # YOUR CODE ENDS HERE
+   # ==============================
 
 
 class TestCases(unittest.TestCase):
